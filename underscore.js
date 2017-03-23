@@ -109,7 +109,7 @@
   // Similar to ES6's rest param (http://ariya.ofilabs.com/2013/03/es6-and-rest-parameter.html)
   // This accumulates the arguments passed into an array, after a given index.
   var restArgs = function(func, startIndex) {
-    startIndex = startIndex == null ? func.length - 1 : +startIndex;
+    startIndex = startIndex == null ? func.length - 1 : +startIndex;//func.length 表示函数的参数个数
     return function() {
       var length = Math.max(arguments.length - startIndex, 0),
           rest = Array(length),
@@ -832,6 +832,7 @@
   // as much as it can, without ever going more than once per `wait` duration;
   // but if you'd like to disable the execution on the leading edge, pass
   // `{leading: false}`. To disable execution on the trailing edge, ditto.
+  // 返回一个包装好的函数，
   _.throttle = function(func, wait, options) {
     var timeout, context, args, result;
     var previous = 0;
@@ -846,7 +847,7 @@
 
     var throttled = function() {
       var now = _.now();
-      if (!previous && options.leading === false) previous = now;
+      if (!previous && options.leading === false) previous = now;//默认leading 是true，直接执行
       var remaining = wait - (now - previous);
       context = this;
       args = arguments;
@@ -858,7 +859,7 @@
         previous = now;
         result = func.apply(context, args);
         if (!timeout) context = args = null;
-      } else if (!timeout && options.trailing !== false) {
+      } else if (!timeout && options.trailing !== false) {//如果没设置 timeout 而且需要执行后置调用
         timeout = setTimeout(later, remaining);
       }
       return result;
@@ -877,6 +878,7 @@
   // be triggered. The function will be called after it stops being called for
   // N milliseconds. If `immediate` is passed, trigger the function on the
   // leading edge, instead of the trailing.
+  // debounce 返回一个函数，这个函数拥有这样的特性：调用后 wait 时间后再执行，如果在此等待期间有重复调用，则把执行时间再向后推。总之，在最后一次调用的 wait 时间后再执行。如果 immediate 属性为 true 则在首次调用时执行函数，最后一次调用 wait 时间后也会执行函数。 
   _.debounce = function(func, wait, immediate) {
     var timeout, result;
 
