@@ -11,19 +11,23 @@
   // Establish the root object, `window` (`self`) in the browser, `global`
   // on the server, or `this` in some virtual machines. We use `self`
   // instead of `window` for `WebWorker` support.
+  //建立根对象，浏览器中是 window （self，我们使用self而不是window ，以提供对WebWorker的支持）,服务器端是 global，或者在虚拟机环境中是 this 。
   var root = typeof self == 'object' && self.self === self && self ||
             typeof global == 'object' && global.global === global && global ||
             this ||
             {};
 
   // Save the previous value of the `_` variable.
+  //保存_符号之前所代表的值。
   var previousUnderscore = root._;
 
   // Save bytes in the minified (but not gzipped) version:
+  //简化prototype的表示
   var ArrayProto = Array.prototype, ObjProto = Object.prototype;
   var SymbolProto = typeof Symbol !== 'undefined' ? Symbol.prototype : null;
 
   // Create quick reference variables for speed access to core prototypes.
+  //提供对常用方法的变量缓存
   var push = ArrayProto.push,
       slice = ArrayProto.slice,
       toString = ObjProto.toString,
@@ -31,14 +35,17 @@
 
   // All **ECMAScript 5** native function implementations that we hope to use
   // are declared here.
+  //在此处定义之后用到的 es5 中原生方法的变量缓存。
   var nativeIsArray = Array.isArray,
       nativeKeys = Object.keys,
       nativeCreate = Object.create;
 
   // Naked function reference for surrogate-prototype-swapping.
+  // 一个空函数指针，用于『替代原型交换』
   var Ctor = function(){};
 
   // Create a safe reference to the Underscore object for use below.
+  //创建一个对 Underscore 对象的安全引用，以供下面使用。注：这是一个单例？鲁棒的构造函数
   var _ = function(obj) {
     if (obj instanceof _) return obj;
     if (!(this instanceof _)) return new _(obj);
@@ -50,6 +57,7 @@
   // the browser, add `_` as a global object.
   // (`nodeType` is checked to ensure that `module`
   // and `exports` are not HTML elements.)
+  // 判断执行环境，如果是 Nodejs ，则用 CommonJs 的方式导出模块，如果是在浏览器环境中，添加为全局变量。
   if (typeof exports != 'undefined' && !exports.nodeType) {
     if (typeof module != 'undefined' && !module.nodeType && module.exports) {
       exports = module.exports = _;
@@ -65,6 +73,7 @@
   // Internal function that returns an efficient (for current engines) version
   // of the passed-in callback, to be repeatedly applied in other Underscore
   // functions.
+  // 一个内部函数，会把传入的回调函数包装成一个在当前环境下更高效的版本，然后返这个函数。将会在下面的很多 Undercore 函数中使用。
   var optimizeCb = function(func, context, argCount) {
     if (context === void 0) return func;
     switch (argCount) {
@@ -73,6 +82,7 @@
       };
       // The 2-parameter case has been omitted only because no current consumers
       // made use of it.
+      // 由于没有其它函数使用 2 个参数调用这个函数，因而省略 2 个参数的情况。
       case null:
       case 3: return function(value, index, collection) {
         return func.call(context, value, index, collection);
@@ -91,6 +101,7 @@
   // An internal function to generate callbacks that can be applied to each
   // element in a collection, returning the desired result — either `identity`,
   // an arbitrary callback, a property matcher, or a property accessor.
+  // 一个内部函数，生成一些回调函数，这些回调函数可以被应用到一个集合的每个元素中，然后返回期望的结果 —— id,一个任意的回调函数，一个属性匹配器，或者一个属性访问器。
   var cb = function(value, context, argCount) {
     if (_.iteratee !== builtinIteratee) return _.iteratee(value, context);
     if (value == null) return _.identity;
@@ -102,12 +113,14 @@
   // External wrapper for our callback generator. Users may customize
   // `_.iteratee` if they want additional predicate/iteratee shorthand styles.
   // This abstraction hides the internal-only argCount argument.
+  // 对回调生成器的外部包装。如果用户需要其他 谓词/迭代 速记风格，用户可以自定义“_.iteratee”，这个抽象隐藏了只有内部可见的argCount参数。
   _.iteratee = builtinIteratee = function(value, context) {
     return cb(value, context, Infinity);
   };
 
   // Similar to ES6's rest param (http://ariya.ofilabs.com/2013/03/es6-and-rest-parameter.html)
   // This accumulates the arguments passed into an array, after a given index.
+  //类似于 ES6 的 rest 参数，这个函数把给定 index 之后的 arguments 传到一个数组中去，然后传给作为 func 的参数，是对 func 的一种格式化。
   var restArgs = function(func, startIndex) {
     startIndex = startIndex == null ? func.length - 1 : +startIndex;//func.length 表示函数的参数个数
     return function() {
@@ -132,6 +145,7 @@
   };
 
   // An internal function for creating a new object that inherits from another.
+  // 对 Object.create 的一个封装
   var baseCreate = function(prototype) {
     if (!_.isObject(prototype)) return {};
     if (nativeCreate) return nativeCreate(prototype);
@@ -140,13 +154,13 @@
     Ctor.prototype = null;
     return result;
   };
-
+// 获取属性
   var shallowProperty = function(key) {
     return function(obj) {
       return obj == null ? void 0 : obj[key];
     };
   };
-
+// 获取内部属性
   var deepGet = function(obj, path) {
     var length = path.length;
     for (var i = 0; i < length; i++) {
@@ -160,6 +174,7 @@
   // should be iterated as an array or as an object.
   // Related: http://people.mozilla.org/~jorendorff/es6-draft.html#sec-tolength
   // Avoids a very nasty iOS 8 JIT bug on ARM-64. #2094
+  // 判断一个集合是应该被按照数组遍历还是按照对象遍历的辅助函数。
   var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
   var getLength = shallowProperty('length');
   var isArrayLike = function(collection) {
@@ -945,6 +960,7 @@
   };
 
   // Returns a function that will only be executed up to (but not including) the Nth call.
+  //接受一个整数n和一个函数func作为参数，返回一个函数，此函数保证无论执行多少次，func被执行次数少于n
   _.before = function(times, func) {
     var memo;
     return function() {
